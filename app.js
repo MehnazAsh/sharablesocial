@@ -343,6 +343,7 @@ async function shareOnWhatsApp() {
         message += `👤 *${currentCard.firstName} ${currentCard.lastName}*\n`;
         if (currentCard.jobTitle) message += `💼 ${currentCard.jobTitle}\n`;
         if (currentCard.company) message += `🏢 ${currentCard.company}\n`;
+        if (currentCard.instagram) message += `Insta: ${currentCard.instagram}\n`;
         message += `\n📱 Contact saved in QR code - please check your downloads for the image!\n`;
         message += `\n🔗 Digital Card: ${window.location.href}`;
         
