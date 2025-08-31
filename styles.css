@@ -597,4 +597,77 @@ body {
         font-size: 0.875rem;
         padding: 0.5rem 0.75rem;
     }
+
+    /* Card Style Selection Modal */
+.card-style-options {
+    margin: 1.5rem 0;
+}
+
+.card-style-options h4 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.style-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.style-option-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.5rem 1rem;
+    background: var(--background);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.style-option-btn:hover {
+    background: #25D366;
+    color: white;
+    border-color: #25D366;
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.style-option-btn span:first-child {
+    font-size: 2rem;
+}
+
+.preview-section {
+    background: var(--background);
+    padding: 1rem;
+    border-radius: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.preview-section h4 {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.preview-section pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .style-options {
+        grid-template-columns: 1fr;
+    }
+}
+
 }
