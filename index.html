@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DigiCard - Connect Seamlessly</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation -->
+        <nav class="nav-bar">
+            <div class="nav-brand">
+                <div class="brand-logo">
+                    <span class="logo-icon">🔗</span>
+                    <h1>DigiCard</h1>
+                </div>
+                <h2 class="brand-tagline">Connect Seamlessly</h2>
+                <p class="brand-subtitle">Your fast and easy sharable socials</p>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Side - Form -->
+            <div class="left-panel">
+                <div class="card-creator">
+                    <div class="section-header">
+                        <h2>Create Your Digital Card</h2>
+                        <p>Fill in your details to generate your shareable business card</p>
+                    </div>
+                    <form id="card-form">
+                        <!-- Row 1: First Name & Last Name -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>First Name*</label>
+                                <input type="text" id="firstName" required placeholder="John">
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name*</label>
+                                <input type="text" id="lastName" required placeholder="Doe">
+                            </div>
+                        </div>
+
+                        <!-- Row 2: LinkedIn & Instagram -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>LinkedIn</label>
+                                <input type="text" id="linkedin" placeholder="linkedin.com/in/johndoe">
+                            </div>
+                            <div class="form-group">
+                                <label>Instagram Handle</label>
+                                <input type="text" id="instagram" placeholder="@johndoe">
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Phone & Email -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Phone*</label>
+                                <input type="tel" id="phone" required placeholder="+1 234 567 8900">
+                            </div>
+                            <div class="form-group">
+                                <label>Email*</label>
+                                <input type="email" id="email" required placeholder="john@example.com">
+                            </div>
+                        </div>
+
+                        <!-- Row 4: Job Title & Company -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Job Title</label>
+                                <input type="text" id="jobTitle" placeholder="Software Engineer">
+                            </div>
+                            <div class="form-group">
+                                <label>Company</label>
+                                <input type="text" id="company" placeholder="Tech Corp">
+                            </div>
+                        </div>
+
+                        <!-- Row 5: Website & Address -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Website</label>
+                                <input type="url" id="website" placeholder="www.example.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Address</label>
+                                <input type="text" id="address" placeholder="City, Country">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <span class="btn-icon">✨</span>
+                            Generate Business Card
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Side - Generated Card Display -->
+            <div class="right-panel">
+                <div id="card-display" class="card-display hidden">
+                    <div class="section-header">
+                        <h2>Your Digital Business Card</h2>
+                        <p>Share your card instantly with anyone</p>
+                    </div>
+                    <div class="business-card">
+                        <div class="card-content">
+                            <div class="card-header">
+                                <div class="card-avatar">
+                                    <span id="avatar-initials"></span>
+                                </div>
+                                <div class="card-info">
+                                    <h3 id="display-name"></h3>
+                                    <p id="display-title"></p>
+                                    <p id="display-company"></p>
+                                </div>
+                            </div>
+                            <div class="card-details">
+                                <div class="detail-item">
+                                    <span class="icon">📧</span>
+                                    <span id="display-email"></span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="icon">📱</span>
+                                    <span id="display-phone"></span>
+                                </div>
+                                <div class="detail-item" id="website-item">
+                                    <span class="icon">🌐</span>
+                                    <span id="display-website"></span>
+                                </div>
+                                <div class="detail-item" id="linkedin-item">
+                                    <span class="icon">💼</span>
+                                    <span id="display-linkedin"></span>
+                                </div>
+                                <div class="detail-item" id="instagram-item">
+                                    <span class="icon">📷</span>
+                                    <span id="display-instagram"></span>
+                                </div>
+                                <div class="detail-item" id="address-item">
+                                    <span class="icon">📍</span>
+                                    <span id="display-address"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-qr-section">
+                            <div class="qr-container">
+                                <div class="qr-wrapper">
+                                    <div id="qrcode"></div>
+                                </div>
+                                <p class="qr-label">Scan to Save</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-section">
+                        <h3>Share Your Details</h3>
+                        <div class="action-buttons">
+                            <button class="btn btn-whatsapp" onclick="shareOnWhatsApp()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.149-.67.149-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414-.074-.123-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                                </svg>
+                                Share on WhatsApp
+                            </button>
+                            <button class="btn btn-secondary" onclick="copyToClipboard()">
+                                <span class="btn-icon">📋</span>
+                                Copy Contact Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="empty-state">
+                    <div class="empty-state-illustration">
+                        <div class="empty-card-preview">
+                            <div class="empty-card-line"></div>
+                            <div class="empty-card-line short"></div>
+                            <div class="empty-card-line"></div>
+                            <div class="empty-qr"></div>
+                        </div>
+                    </div>
+                    <h3>Start Creating Your Digital Card</h3>
+                    <p>Fill in your details on the left to generate your professional business card with QR code</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
