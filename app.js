@@ -1,279 +1,673 @@
-// Global variables
-let currentCard = {};
-
-// Initialize app
-document.addEventListener('DOMContentLoaded', function() {
-    loadFromLocalStorage();
-    initializeEventListeners();
-});
-
-// Event Listeners
-function initializeEventListeners() {
-    // Form submission
-    document.getElementById('card-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        generateCard();
-    });
-
-    // Real-time form updates for live preview
-    const formInputs = document.querySelectorAll('#card-form input');
-    formInputs.forEach(input => {
-        input.addEventListener('input', function() {
-            // Auto-save and preview as user types
-            if (document.getElementById('firstName').value && 
-                document.getElementById('email').value && 
-                document.getElementById('phone').value) {
-                generateCard();
-            }
-        });
-    });
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-// Generate business card
-function generateCard() {
-    // Collect form data
-    currentCard = {
-        firstName: document.getElementById('firstName').value,
-        lastName: document.getElementById('lastName').value,
-        jobTitle: document.getElementById('jobTitle').value,
-        company: document.getElementById('company').value,
-        email: document.getElementById('email').value,
-        phone: document.getElementById('phone').value,
-        website: document.getElementById('website').value,
-        linkedin: document.getElementById('linkedin').value,
-        instagram: document.getElementById('instagram').value,
-        address: document.getElementById('address').value,
-        timestamp: new Date().toISOString()
-    };
-
-    // Save to localStorage
-    localStorage.setItem('myCard', JSON.stringify(currentCard));
-
-    // Display the card
-    displayCard(currentCard);
-
-    // Generate QR code
-    generateQRCode();
-
-    // Show card display and hide empty state
-    document.getElementById('card-display').classList.remove('hidden');
-    document.getElementById('empty-state').classList.add('hidden');
+:root {
+    --primary-color: #6366f1;
+    --primary-dark: #4f46e5;
+    --primary-light: #818cf8;
+    --secondary-color: #8b5cf6;
+    --whatsapp-color: #25D366;
+    --whatsapp-hover: #128C7E;
+    --background: #f8fafc;
+    --card-bg: #ffffff;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --text-light: #94a3b8;
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-alt: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
 }
 
-// Display business card
-function displayCard(card) {
-    // Set avatar initials
-    const initials = `${card.firstName[0]}${card.lastName[0]}`.toUpperCase();
-    document.getElementById('avatar-initials').textContent = initials;
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+}
 
-    // Set card information
-    document.getElementById('display-name').textContent = `${card.firstName} ${card.lastName}`;
-    document.getElementById('display-title').textContent = card.jobTitle || '';
-    document.getElementById('display-company').textContent = card.company || '';
-    document.getElementById('display-email').textContent = card.email;
-    document.getElementById('display-phone').textContent = card.phone;
+.app-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    min-height: 100vh;
+}
 
-    // Optional fields
-    if (card.website) {
-        let websiteDisplay = card.website.replace(/^https?:\/\//, '');
-        document.getElementById('display-website').textContent = websiteDisplay;
-        document.getElementById('website-item').style.display = 'flex';
-    } else {
-        document.getElementById('website-item').style.display = 'none';
+/* Navigation - Centered */
+.nav-bar {
+    background: var(--card-bg);
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.nav-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.logo-icon {
+    font-size: 2.5rem;
+    background: var(--gradient-alt);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.nav-brand h1 {
+    background: var(--gradient-alt);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.brand-tagline {
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.brand-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* Main Content Layout */
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    padding: 0 2rem 2rem;
+    align-items: start;
+}
+
+/* Section Headers */
+.section-header {
+    margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.section-header p {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+/* Left Panel - Form */
+.left-panel {
+    position: sticky;
+    top: 2rem;
+}
+
+.card-creator {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+}
+
+/* Form Layout - All fields in 2 columns */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    background: #fafbfc;
+}
+
+.form-group input:hover {
+    border-color: var(--primary-light);
+    background: var(--card-bg);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: var(--card-bg);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-group input::placeholder {
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+/* Right Panel */
+.right-panel {
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.card-display {
+    width: 100%;
+    max-width: 550px; /* Reduced width */
+    margin: 0 auto;
+}
+
+/* Buttons */
+.btn {
+    padding: 0.875rem 1.75rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+.btn:hover:before {
+    transform: translateX(0);
+}
+
+.btn-block {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.btn-primary {
+    background: var(--gradient-alt);
+    color: white;
+    box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px 0 rgba(99, 102, 241, 0.4);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+    color: white;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px 0 rgba(100, 116, 139, 0.4);
+}
+
+.btn-whatsapp {
+    background: linear-gradient(135deg, var(--whatsapp-color) 0%, var(--whatsapp-hover) 100%);
+    color: white;
+}
+
+.btn-whatsapp:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px 0 rgba(37, 211, 102, 0.4);
+}
+
+.btn-icon {
+    font-size: 1.2rem;
+}
+
+/* Business Card Display - Reduced Width */
+.business-card {
+    background: var(--gradient);
+    border-radius: 20px;
+    box-shadow: var(--shadow-lg);
+    color: white;
+    display: flex;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    position: relative;
+    min-height: 280px; /* Reduced height */
+    max-width: 100%;
+}
+
+.business-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+    pointer-events: none;
+}
+
+.card-content {
+    flex: 1;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    z-index: 1;
+}
+
+/* QR Section with matching background */
+.card-qr-section {
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 160px; /* Reduced width */
+    position: relative;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.qr-container {
+    text-align: center;
+}
+
+.qr-wrapper {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 0.625rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+#qrcode {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#qrcode canvas,
+#qrcode img {
+    border-radius: 8px;
+    width: 120px !important; /* Smaller QR code */
+    height: 120px !important;
+}
+
+.qr-label {
+    margin-top: 0.75rem;
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.875rem;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.card-avatar {
+    width: 60px; /* Reduced size */
+    height: 60px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    flex-shrink: 0;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.card-info h3 {
+    font-size: 1.25rem; /* Reduced size */
+    margin-bottom: 0.2rem;
+    font-weight: 600;
+}
+
+.card-info p {
+    opacity: 0.95;
+    font-size: 0.85rem; /* Reduced size */
+    line-height: 1.3;
+}
+
+.card-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: 0.85rem; /* Reduced size */
+    padding: 0.2rem 0;
+}
+
+.detail-item .icon {
+    font-size: 1rem;
+    width: 20px;
+    text-align: center;
+}
+
+/* Action section - Side by side buttons */
+.action-section {
+    background: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    max-width: 100%;
+}
+
+.action-section h3 {
+    margin-bottom: 1.25rem;
+    color: var(--text-primary);
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+/* Empty State */
+.empty-state {
+    background: var(--card-bg);
+    padding: 3rem 2rem;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    border: 1px solid var(--border-color);
+    max-width: 550px;
+    margin: 0 auto;
+}
+
+.empty-state-illustration {
+    margin-bottom: 2rem;
+}
+
+.empty-card-preview {
+    width: 200px;
+    height: 120px;
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    border-radius: 12px;
+    margin: 0 auto;
+    padding: 1rem;
+    position: relative;
+}
+
+.empty-card-line {
+    height: 10px;
+    background: #d1d5db;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+.empty-card-line.short {
+    width: 60%;
+}
+
+.empty-qr {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background: #d1d5db;
+    border-radius: 8px;
+}
+
+.empty-state h3 {
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.empty-state p {
+    max-width: 400px;
+    margin: 0 auto;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .main-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
     }
-
-    if (card.linkedin) {
-        let linkedinDisplay = card.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '');
-        document.getElementById('display-linkedin').textContent = linkedinDisplay;
-        document.getElementById('linkedin-item').style.display = 'flex';
-    } else {
-        document.getElementById('linkedin-item').style.display = 'none';
+    
+    .left-panel {
+        position: static;
     }
-
-    if (card.instagram) {
-        let instagramDisplay = card.instagram.startsWith('@') ? card.instagram : `@${card.instagram}`;
-        document.getElementById('display-instagram').textContent = instagramDisplay;
-        document.getElementById('instagram-item').style.display = 'flex';
-    } else {
-        document.getElementById('instagram-item').style.display = 'none';
+    
+    .right-panel {
+        width: 100%;
     }
-
-    if (card.address) {
-        document.getElementById('display-address').textContent = card.address;
-        document.getElementById('address-item').style.display = 'flex';
-    } else {
-        document.getElementById('address-item').style.display = 'none';
+    
+    .card-display {
+        max-width: 600px;
     }
 }
 
-// Generate QR Code
-function generateQRCode() {
-    // Clear existing QR code
-    document.getElementById('qrcode').innerHTML = '';
-
-    // Create vCard data
-    const vCardData = generateVCardData(currentCard);
-
-    // Generate QR code with smaller size
-    new QRCode(document.getElementById('qrcode'), {
-        text: vCardData,
-        width: 120,
-        height: 120,
-        colorDark: '#1e293b',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H
-    });
+@media (max-width: 768px) {
+    .nav-bar {
+        padding: 1.5rem 1rem;
+    }
+    
+    .nav-brand h1 {
+        font-size: 1.75rem;
+    }
+    
+    .brand-tagline {
+        font-size: 1.1rem;
+    }
+    
+    .main-content {
+        padding: 0 1rem 1rem;
+    }
+    
+    .card-creator {
+        padding: 1.5rem;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .business-card {
+        flex-direction: column;
+        min-height: auto;
+    }
+    
+    .card-qr-section {
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        min-width: auto;
+    }
+    
+    #qrcode canvas,
+    #qrcode img {
+        width: 140px !important;
+        height: 140px !important;
+    }
+    
+    .action-buttons {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
 }
 
-// Generate vCard data
-function generateVCardData(card) {
-    let vCard = 'BEGIN:VCARD\n';
-    vCard += 'VERSION:3.0\n';
-    vCard += `FN:${card.firstName} ${card.lastName}\n`;
-    vCard += `N:${card.lastName};${card.firstName};;;\n`;
-    if (card.jobTitle) vCard += `TITLE:${card.jobTitle}\n`;
-    if (card.company) vCard += `ORG:${card.company}\n`;
-    vCard += `EMAIL:${card.email}\n`;
-    vCard += `TEL:${card.phone}\n`;
-    if (card.website) {
-        let website = card.website;
-        if (!website.startsWith('http')) {
-            website = 'https://' + website;
-        }
-        vCard += `URL:${website}\n`;
+@media (max-width: 480px) {
+    .logo-icon {
+        font-size: 2rem;
     }
-    if (card.linkedin) {
-        let linkedin = card.linkedin;
-        if (!linkedin.startsWith('http')) {
-            linkedin = 'https://' + linkedin;
-        }
-        vCard += `URL:${linkedin}\n`;
+    
+    .nav-brand h1 {
+        font-size: 1.5rem;
     }
-    if (card.instagram) {
-        let instagram = card.instagram.replace('@', '');
-        vCard += `URL:https://instagram.com/${instagram}\n`;
+    
+    .brand-tagline {
+        font-size: 1rem;
     }
-    if (card.address) vCard += `ADR:;;${card.address};;;;\n`;
-    vCard += 'END:VCARD';
-    return vCard;
+    
+    .brand-subtitle {
+        font-size: 0.875rem;
+    }
+    
+    .card-content {
+        padding: 1.25rem;
+    }
+    
+    .card-avatar {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+    
+    .card-info h3 {
+        font-size: 1.1rem;
+    }
+    
+    .form-group input {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    /* Card Style Selection Modal */
+.card-style-options {
+    margin: 1.5rem 0;
 }
 
-// Share on WhatsApp
-function shareOnWhatsApp() {
-    if (!currentCard.firstName) {
-        alert('Please generate your business card first!');
-        return;
-    }
-
-    // Create a formatted message
-    let message = `✨ *Digital Business Card*\n\n`;
-    message += `👤 *${currentCard.firstName} ${currentCard.lastName}*\n`;
-    
-    if (currentCard.jobTitle) message += `💼 ${currentCard.jobTitle}\n`;
-    if (currentCard.company) message += `🏢 ${currentCard.company}\n`;
-    message += `\n📬 *Contact Information*\n`;
-    message += `📧 Email: ${currentCard.email}\n`;
-    message += `📱 Phone: ${currentCard.phone}\n`;
-    
-    if (currentCard.website || currentCard.linkedin || currentCard.instagram) {
-        message += `\n🌐 *Social Media*\n`;
-        if (currentCard.website) {
-            let website = currentCard.website;
-            if (!website.startsWith('http')) {
-                website = 'https://' + website;
-            }
-            message += `🔗 Website: ${website}\n`;
-        }
-        if (currentCard.linkedin) {
-            let linkedin = currentCard.linkedin;
-            if (!linkedin.startsWith('http')) {
-                linkedin = 'https://' + linkedin;
-            }
-            message += `💼 LinkedIn: ${linkedin}\n`;
-        }
-        if (currentCard.instagram) {
-            let instagram = currentCard.instagram.startsWith('@') ? currentCard.instagram : `@${currentCard.instagram}`;
-            message += `📷 Instagram: ${instagram}\n`;
-        }
-    }
-    
-    if (currentCard.address) message += `\n📍 Address: ${currentCard.address}\n`;
-    
-    message += `\n💾 *Save my contact by scanning the QR code*\n`;
-    message += `🔗 Digital Card: ${window.location.href}`;
-
-    // Encode the message for WhatsApp URL
-    const encodedMessage = encodeURIComponent(message);
-    
-    // Open WhatsApp with pre-filled message
-    const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
-    window.open(whatsappUrl, '_blank');
+.card-style-options h4 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
 }
 
-// Copy details to clipboard
-function copyToClipboard() {
-    if (!currentCard.firstName) {
-        alert('Please generate your business card first!');
-        return;
-    }
-
-    let details = `${currentCard.firstName} ${currentCard.lastName}\n`;
-    if (currentCard.jobTitle) details += `${currentCard.jobTitle}\n`;
-    if (currentCard.company) details += `${currentCard.company}\n`;
-    details += `\nContact Information:\n`;
-    details += `Email: ${currentCard.email}\n`;
-    details += `Phone: ${currentCard.phone}\n`;
-    
-    if (currentCard.website || currentCard.linkedin || currentCard.instagram) {
-        details += `\nSocial Media:\n`;
-        if (currentCard.website) details += `Website: ${currentCard.website}\n`;
-        if (currentCard.linkedin) details += `LinkedIn: ${currentCard.linkedin}\n`;
-        if (currentCard.instagram) {
-            let instagram = currentCard.instagram.startsWith('@') ? currentCard.instagram : `@${currentCard.instagram}`;
-            details += `Instagram: ${instagram}\n`;
-        }
-    }
-    
-    if (currentCard.address) details += `\nAddress: ${currentCard.address}\n`;
-
-    navigator.clipboard.writeText(details)
-        .then(() => {
-            // Show success feedback
-            const btn = event.target.closest('button');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<span class="btn-icon">✅</span> Copied!';
-            btn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-            
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.style.background = '';
-            }, 2000);
-        })
-        .catch(err => console.error('Could not copy text: ', err));
+.style-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
 }
 
-// Load from Local Storage
-function loadFromLocalStorage() {
-    const savedCard = localStorage.getItem('myCard');
-    if (savedCard) {
-        currentCard = JSON.parse(savedCard);
-        
-        // Pre-fill form
-        document.getElementById('firstName').value = currentCard.firstName || '';
-        document.getElementById('lastName').value = currentCard.lastName || '';
-        document.getElementById('jobTitle').value = currentCard.jobTitle || '';
-        document.getElementById('company').value = currentCard.company || '';
-        document.getElementById('email').value = currentCard.email || '';
-        document.getElementById('phone').value = currentCard.phone || '';
-        document.getElementById('website').value = currentCard.website || '';
-        document.getElementById('linkedin').value = currentCard.linkedin || '';
-        document.getElementById('instagram').value = currentCard.instagram || '';
-        document.getElementById('address').value = currentCard.address || '';
-        
-        // Display the card
-        displayCard(currentCard);
-        generateQRCode();
-        document.getElementById('card-display').classList.remove('hidden');
-        document.getElementById('empty-state').classList.add('hidden');
+.style-option-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.5rem 1rem;
+    background: var(--background);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.style-option-btn:hover {
+    background: #25D366;
+    color: white;
+    border-color: #25D366;
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.style-option-btn span:first-child {
+    font-size: 2rem;
+}
+
+.preview-section {
+    background: var(--background);
+    padding: 1rem;
+    border-radius: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.preview-section h4 {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.preview-section pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .style-options {
+        grid-template-columns: 1fr;
     }
+}
+
 }
