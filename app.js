@@ -1,441 +1,455 @@
 // Global variables
-let currentCard = {};
-let qrImageBlob = null;
-let qrCodeDataURL = null;
+let currentURLData = {};
+let currentCardData = {};
+let urlQRBlob = null;
+let cardQRBlob = null;
 
-// Initialize app
+// Initialize
 document.addEventListener('DOMContentLoaded', function() {
-    loadFromLocalStorage();
-    initializeEventListeners();
+initializeEventListeners();
+loadSavedData();
 });
 
-// Event Listeners
+// Initialize event listeners
 function initializeEventListeners() {
-    // Form submission
-    document.getElementById('card-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        generateCard();
-    });
+// URL form submission
+document.getElementById('url-form').addEventListener('submit', function(e) {
+e.preventDefault();
+generateURLQR();
+});
 
-    // Real-time form updates for live preview
-    const formInputs = document.querySelectorAll('#card-form input');
-    formInputs.forEach(input => {
-        input.addEventListener('input', function() {
-            // Auto-save and preview as user types
-            if (document.getElementById('firstName').value && 
-                document.getElementById('email').value && 
-                document.getElementById('phone').value) {
-                generateCard();
-            }
-        });
-    });
+// Card form submission
+document.getElementById('card-form').addEventListener('submit', function(e) {
+e.preventDefault();
+generateBusinessCard();
+});
 }
 
-// Generate business card
-function generateCard() {
-    // Collect form data
-    currentCard = {
-        firstName: document.getElementById('firstName').value,
-        lastName: document.getElementById('lastName').value,
-        jobTitle: document.getElementById('jobTitle').value,
-        company: document.getElementById('company').value,
-        email: document.getElementById('email').value,
-        phone: document.getElementById('phone').value,
-        website: document.getElementById('website').value,
-        linkedin: document.getElementById('linkedin').value,
-        instagram: document.getElementById('instagram').value,
-        address: document.getElementById('address').value,
-        timestamp: new Date().toISOString()
-    };
-
-    // Save to localStorage
-    localStorage.setItem('myCard', JSON.stringify(currentCard));
-
-    // Display the card
-    displayCard(currentCard);
-
-    // Generate QR code
-    generateQRCode();
-
-    // Show card display and hide empty state
-    document.getElementById('card-display').classList.remove('hidden');
-    document.getElementById('empty-state').classList.add('hidden');
+// Tab switching
+function switchTab(tab) {
+// Update tab buttons
+document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+document.getElementById(`${tab}-tab`).classList.add('active');
+// Update content sections
+document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+document.getElementById(`${tab}-section`).classList.add('active');
 }
 
-// Display business card
-function displayCard(card) {
-    // Set avatar initials
-    const initials = `${card.firstName[0]}${card.lastName[0]}`.toUpperCase();
-    document.getElementById('avatar-initials').textContent = initials;
-
-    // Set card information
-    document.getElementById('display-name').textContent = `${card.firstName} ${card.lastName}`;
-    document.getElementById('display-title').textContent = card.jobTitle || '';
-    document.getElementById('display-company').textContent = card.company || '';
-    document.getElementById('display-email').textContent = card.email;
-    document.getElementById('display-phone').textContent = card.phone;
-
-    // Optional fields
-    if (card.website) {
-        let websiteDisplay = card.website.replace(/^https?:\/\//, '');
-        document.getElementById('display-website').textContent = websiteDisplay;
-        document.getElementById('website-item').style.display = 'flex';
-    } else {
-        document.getElementById('website-item').style.display = 'none';
-    }
-
-    if (card.linkedin) {
-        let linkedinDisplay = card.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '');
-        document.getElementById('display-linkedin').textContent = linkedinDisplay;
-        document.getElementById('linkedin-item').style.display = 'flex';
-    } else {
-        document.getElementById('linkedin-item').style.display = 'none';
-    }
-
-    if (card.instagram) {
-        let instagramDisplay = card.instagram.startsWith('@') ? card.instagram : `@${card.instagram}`;
-        document.getElementById('display-instagram').textContent = instagramDisplay;
-        document.getElementById('instagram-item').style.display = 'flex';
-    } else {
-        document.getElementById('instagram-item').style.display = 'none';
-    }
-
-    if (card.address) {
-        document.getElementById('display-address').textContent = card.address;
-        document.getElementById('address-item').style.display = 'flex';
-    } else {
-        document.getElementById('address-item').style.display = 'none';
-    }
+// Update URL form based on type
+function updateURLForm() {
+const urlType = document.getElementById('urlType').value;
+const urlLabel = document.getElementById('urlLabel');
+const urlInput = document.getElementById('urlInput');
+const urlHelp = document.getElementById('urlHelp');
+switch(urlType) {
+case 'menu':
+urlLabel.textContent = 'Menu URL';
+urlInput.placeholder = 'https://restaurant.com/menu';
+urlHelp.textContent = 'Enter your online menu URL';
+break;
+case 'location':
+urlLabel.textContent = 'Maps/Location URL';
+urlInput.placeholder = 'https://maps.google.com/...';
+urlHelp.textContent = 'Enter Google Maps or location URL';
+break;
+case 'website':
+urlLabel.textContent = 'Website URL';
+urlInput.placeholder = 'https://www.example.com';
+urlHelp.textContent = 'Enter your website URL';
+break;
+case 'custom':
+urlLabel.textContent = 'Custom URL';
+urlInput.placeholder = 'https://...';
+urlHelp.textContent = 'Enter any valid URL';
+break;
+}
 }
 
-// Generate QR Code
-function generateQRCode() {
-    // Clear existing QR code
-    document.getElementById('qrcode').innerHTML = '';
-
-    // Create vCard data
-    const vCardData = generateVCardData(currentCard);
-
-    // Generate QR code with smaller size
-    new QRCode(document.getElementById('qrcode'), {
-        text: vCardData,
-        width: 120,
-        height: 120,
-        colorDark: '#1e293b',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H
-    });
+// Generate URL QR Code
+function generateURLQR() {
+// Collect form data
+currentURLData = {
+type: document.getElementById('urlType').value,
+businessName: document.getElementById('businessName').value,
+url: document.getElementById('urlInput').value,
+description: document.getElementById('urlDescription').value
+};
+// Validate URL
+if (!currentURLData.url.startsWith('http')) {
+currentURLData.url = 'https://' + currentURLData.url;
+}
+// Save to localStorage
+localStorage.setItem('urlData', JSON.stringify(currentURLData));
+// Generate QR image
+createURLQRImage();
 }
 
-// Generate vCard data
+// Create URL QR Image
+function createURLQRImage() {
+const canvas = document.getElementById('urlQRCanvas');
+const ctx = canvas.getContext('2d');
+// Set canvas size
+canvas.width = 400;
+canvas.height = 450;
+// Background gradient based on type
+let gradient;
+switch(currentURLData.type) {
+case 'menu':
+gradient = ctx.createLinearGradient(0, 0, 400, 450);
+gradient.addColorStop(0, '#f97316');
+gradient.addColorStop(1, '#ea580c');
+break;
+case 'location':
+gradient = ctx.createLinearGradient(0, 0, 400, 450);
+gradient.addColorStop(0, '#10b981');
+gradient.addColorStop(1, '#059669');
+break;
+default:
+gradient = ctx.createLinearGradient(0, 0, 400, 450);
+gradient.addColorStop(0, '#3b82f6');
+gradient.addColorStop(1, '#1e40af');
+}
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, 400, 450);
+// White card
+ctx.fillStyle = 'white';
+roundRect(ctx, 20, 20, 360, 410, 15);
+ctx.fill();
+// Icon and title
+const icons = {
+website: '🌐',
+menu: '🍽️',
+location: '📍',
+custom: '🔗'
+};
+ctx.font = '32px Arial';
+ctx.textAlign = 'center';
+ctx.fillStyle = '#1e293b';
+ctx.fillText(icons[currentURLData.type], 200, 70);
+// Business name
+ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, Segoe UI';
+ctx.fillText(currentURLData.businessName, 200, 110);
+// Description
+if (currentURLData.description) {
+ctx.font = '14px -apple-system, BlinkMacSystemFont, Segoe UI';
+ctx.fillStyle = '#64748b';
+ctx.fillText(currentURLData.description, 200, 135);
+}
+// Generate QR code
+const tempDiv = document.createElement('div');
+tempDiv.style.position = 'absolute';
+tempDiv.style.left = '-9999px';
+document.body.appendChild(tempDiv);
+new QRCode(tempDiv, {
+text: currentURLData.url,
+width: 220,
+height: 220,
+colorDark: '#1e293b',
+colorLight: '#ffffff',
+correctLevel: QRCode.CorrectLevel.H
+});
+setTimeout(() => {
+const qrCanvas = tempDiv.querySelector('canvas');
+if (qrCanvas) {
+// Draw QR code
+ctx.drawImage(qrCanvas, 90, 160);
+// URL text
+ctx.font = '12px -apple-system, BlinkMacSystemFont, Segoe UI';
+ctx.fillStyle = '#3b82f6';
+ctx.textAlign = 'center';
+const displayUrl = currentURLData.url.replace(/^https?:\/\//, '').substring(0, 40);
+ctx.fillText(displayUrl, 200, 400);
+// Scan text
+ctx.fillStyle = '#94a3b8';
+ctx.fillText('Scan to visit', 200, 420);
+// Convert to blob
+canvas.toBlob((blob) => {
+urlQRBlob = blob;
+displayURLPreview();
+}, 'image/png');
+}
+document.body.removeChild(tempDiv);
+}, 100);
+}
+
+// Display URL Preview
+function displayURLPreview() {
+document.getElementById('url-empty-state').classList.add('hidden');
+document.getElementById('url-preview').classList.remove('hidden');
+showMessage('URL QR Code generated successfully!', 'success');
+}
+
+// Generate Business Card
+function generateBusinessCard() {
+// Collect form data
+currentCardData = {
+firstName: document.getElementById('firstName').value,
+lastName: document.getElementById('lastName').value,
+// jobTitle: document.getElementById('jobTitle').value,
+// company: document.getElementById('company').value,
+email: document.getElementById('email').value,
+phone: document.getElementById('phone').value,
+// address: document.getElementById('address').value,
+//website: document.getElementById('website').value,
+linkedin: document.getElementById('linkedin').value,
+// instagram: document.getElementById('instagram').value
+};
+// Save to localStorage
+localStorage.setItem('cardData', JSON.stringify(currentCardData));
+// Display card preview
+displayCardPreview();
+// Generate QR code
+generateCardQR();
+// Create styled QR image
+createCardQRImage();
+}
+
+// Display Card Preview
+function displayCardPreview() {
+// Update avatar
+// const initials = `${currentCardData.firstName[0]}${currentCardData.lastName[0]}`.toUpperCase();
+// document.getElementById('avatar-initials').textContent = initials;
+// // Update info
+ document.getElementById('display-name').textContent =`${currentCardData.firstName} ${currentCardData.lastName}`;
+// document.getElementById('display-title').textContent = currentCardData.jobTitle || '---';
+// document.getElementById('display-company').textContent = currentCardData.company || '---';
+// document.getElementById('display-email').textContent = currentCardData.email;
+// document.getElementById('display-phone').textContent = currentCardData.phone;
+// Optional fields
+// const optionalFields = ['website', 'linkedin', 'instagram'];
+//const optionalFields = ['linkedin'];
+// optionalFields.forEach(field => {
+// const item = document.getElementById(`${field}-item`);
+// const display = document.getElementById(`display-${field}`);
+if (currentCardData.linkedin) {
+//currentCardData.linkedin.style.display = 'flex';
+//display.textContent = currentCardData.linkedin;
+} else {
+//item.style.display = 'none';
+}
+// });
+// Show preview
+document.getElementById('card-empty-state').classList.add('hidden');
+document.getElementById('card-preview').classList.remove('hidden');
+}
+
+// Generate Card QR
+function generateCardQR() {
+const qrContainer = document.getElementById('qrcode');
+qrContainer.innerHTML = '';
+const vCardData = generateVCardData(currentCardData);
+new QRCode(qrContainer, {
+text: vCardData,
+width: 250,
+height: 250,
+colorDark: '#1e293b',
+colorLight: '#ffffff',
+correctLevel: QRCode.CorrectLevel.H
+});
+}
+
+// Generate vCard Data
 function generateVCardData(card) {
-    let vCard = 'BEGIN:VCARD\n';
-    vCard += 'VERSION:3.0\n';
-    vCard += `FN:${card.firstName} ${card.lastName}\n`;
-    vCard += `N:${card.lastName};${card.firstName};;;\n`;
-    if (card.jobTitle) vCard += `TITLE:${card.jobTitle}\n`;
-    if (card.company) vCard += `ORG:${card.company}\n`;
-    vCard += `EMAIL:${card.email}\n`;
-    vCard += `TEL:${card.phone}\n`;
-    if (card.website) {
-        let website = card.website;
-        if (!website.startsWith('http')) {
-            website = 'https://' + website;
-        }
-        vCard += `URL:${website}\n`;
-    }
-    if (card.linkedin) {
-        let linkedin = card.linkedin;
-        if (!linkedin.startsWith('http')) {
-            linkedin = 'https://' + linkedin;
-        }
-        vCard += `URL:${linkedin}\n`;
-    }
-    if (card.instagram) {
-        let instagram = card.instagram.replace('@', '');
-        vCard += `URL:https://instagram.com/${instagram}\n`;
-    }
-    if (card.address) vCard += `ADR:;;${card.address};;;;\n`;
-    vCard += 'END:VCARD';
-    return vCard;
+let vCard = 'BEGIN:VCARD\n';
+vCard += 'VERSION:3.0\n';
+vCard += `FN:${card.firstName} ${card.lastName}\n`;
+vCard += `N:${card.lastName};${card.firstName};;;\n`;
+if (card.jobTitle) vCard += `TITLE:${card.jobTitle}\n`;
+if (card.company) vCard += `ORG:${card.company}\n`;
+vCard += `EMAIL:${card.email}\n`;
+vCard += `TEL:${card.phone}\n`;
+if (card.linkedin) vCard += `URL:${card.linkedin}\n`;
+if (card.address) vCard += `ADR:;;${card.address};;;;\n`;
+vCard += 'END:VCARD';
+return vCard;
 }
 
-// Create styled QR code image with heading
-function createStyledQRImage(callback) {
-    // Create a canvas for the styled image
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Set canvas dimensions
-    const canvasWidth = 400;
-    const canvasHeight = 500;
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
-    
-    // Create gradient background
-    const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
-    gradient.addColorStop(0, '#667eea');
-    gradient.addColorStop(1, '#764ba2');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-    
-    // Add white card background
-    ctx.fillStyle = 'white';
-    ctx.roundRect(20, 20, canvasWidth - 40, canvasHeight - 40, 15);
-    ctx.fill();
-    
-    // Add heading
-    ctx.fillStyle = '#1e293b';
-    ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto';
-    ctx.textAlign = 'center';
-    ctx.fillText(`Socials of ${currentCard.firstName}`, canvasWidth / 2, 70);
-    
-    // Add subtitle
-    ctx.font = '16px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto';
-    ctx.fillStyle = '#64748b';
-    ctx.fillText('Scan to save contact', canvasWidth / 2, 100);
-    
-    // Create temporary div for QR code generation
-    const tempDiv = document.createElement('div');
-    tempDiv.style.position = 'absolute';
-    tempDiv.style.left = '-9999px';
-    document.body.appendChild(tempDiv);
-    
-    // Generate high-quality QR code
-    const vCardData = generateVCardData(currentCard);
-    new QRCode(tempDiv, {
-        text: vCardData,
-        width: 250,
-        height: 250,
-        colorDark: '#1e293b',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H
-    });
-    
-    // Wait for QR code to be generated
-    setTimeout(() => {
-        const qrCanvas = tempDiv.querySelector('canvas');
-        if (qrCanvas) {
-            // Draw QR code centered
-            const qrX = (canvasWidth - 250) / 2;
-            const qrY = 130;
-            
-            // Add shadow for QR code
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
-            ctx.shadowBlur = 10;
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 2;
-            
-            // Draw QR code
-            ctx.drawImage(qrCanvas, qrX, qrY);
-            
-            // Reset shadow
-            ctx.shadowColor = 'transparent';
-            
-            // Add contact info below QR code
-            ctx.font = '14px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto';
-            ctx.fillStyle = '#475569';
-            ctx.textAlign = 'center';
-            
-            let yPos = qrY + 270;
-            
-            // Add name and title
-            ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto';
-            ctx.fillStyle = '#1e293b';
-            ctx.fillText(`${currentCard.firstName} ${currentCard.lastName}`, canvasWidth / 2, yPos);
-            
-            if (currentCard.jobTitle) {
-                yPos += 25;
-                ctx.font = '14px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto';
-                ctx.fillStyle = '#64748b';
-                ctx.fillText(currentCard.jobTitle, canvasWidth / 2, yPos);
-            }
-            
-            // Add social icons and links
-            yPos += 35;
-            ctx.font = '13px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto';
-            ctx.fillStyle = '#475569';
-            
-            if (currentCard.email) {
-                ctx.fillText(`📧 ${currentCard.email}`, canvasWidth / 2, yPos);
-                yPos += 20;
-            }
-            
-            if (currentCard.phone) {
-                ctx.fillText(`📱 ${currentCard.phone}`, canvasWidth / 2, yPos);
-                yPos += 20;
-            }
-            
-            if (currentCard.linkedin) {
-                let linkedinDisplay = currentCard.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '');
-                ctx.fillText(`💼 LinkedIn: ${linkedinDisplay}`, canvasWidth / 2, yPos);
-                yPos += 20;
-            }
-            
-            if (currentCard.instagram) {
-                let instagramDisplay = currentCard.instagram.startsWith('@') ? currentCard.instagram : `@${currentCard.instagram}`;
-                ctx.fillText(`📷 ${instagramDisplay}`, canvasWidth / 2, yPos);
-            }
-            
-            // Convert canvas to blob
-            canvas.toBlob((blob) => {
-                qrImageBlob = blob;
-                qrCodeDataURL = canvas.toDataURL('image/png');
-                if (callback) callback(blob, qrCodeDataURL);
-            }, 'image/png');
-        }
-        
-        // Clean up
-        document.body.removeChild(tempDiv);
-    }, 100);
+// Create Card QR Image
+function createCardQRImage() {
+const canvas = document.getElementById('cardQRCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = 400;
+canvas.height = 500;
+// Background gradient
+const gradient = ctx.createLinearGradient(0, 0, 400, 500);
+gradient.addColorStop(0, '#667eea');
+gradient.addColorStop(1, '#764ba2');
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, 400, 500);
+// White card
+ctx.fillStyle = 'white';
+roundRect(ctx, 20, 20, 360, 460, 15);
+ctx.fill();
+// Title
+ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, Segoe UI';
+ctx.textAlign = 'center';
+ctx.fillStyle = '#1e293b';
+ctx.fillText(`Socials of ${currentCardData.firstName}`, 200, 70);
+// Subtitle
+ctx.font = '14px -apple-system, BlinkMacSystemFont, Segoe UI';
+ctx.fillStyle = '#64748b';
+ctx.fillText('Scan to save contact', 200, 95);
+// Generate QR
+const tempDiv = document.createElement('div');
+tempDiv.style.position = 'absolute';
+tempDiv.style.left = '-9999px';
+document.body.appendChild(tempDiv);
+const vCardData = generateVCardData(currentCardData);
+new QRCode(tempDiv, {
+text: vCardData,
+width: 240,
+height: 240,
+colorDark: '#1e293b',
+colorLight: '#ffffff',
+correctLevel: QRCode.CorrectLevel.H
+});
+setTimeout(() => {
+const qrCanvas = tempDiv.querySelector('canvas');
+if (qrCanvas) {
+// Draw QR
+ctx.drawImage(qrCanvas, 80, 120);
+// Contact info
+let yPos = 380;
+ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, Segoe UI';
+ctx.fillStyle = '#1e293b';
+ctx.fillText(`${currentCardData.firstName} ${currentCardData.lastName}`, 200, yPos);
+if (currentCardData.jobTitle) {
+yPos += 25;
+ctx.font = '14px -apple-system, BlinkMacSystemFont, Segoe UI';
+ctx.fillStyle = '#64748b';
+ctx.fillText(currentCardData.jobTitle, 200, yPos);
+}
+yPos += 30;
+ctx.font = '13px -apple-system, BlinkMacSystemFont, Segoe UI';
+ctx.fillStyle = '#475569';
+ctx.fillText(`📧 ${currentCardData.email}`, 200, yPos);
+yPos += 20;
+ctx.fillText(`📱 ${currentCardData.phone}`, 200, yPos);
+// Convert to blob
+canvas.toBlob((blob) => {
+cardQRBlob = blob;
+showMessage('Business card generated successfully!', 'success');
+}, 'image/png');
+}
+document.body.removeChild(tempDiv);
+}, 100);
 }
 
-// Share on WhatsApp with QR image
-async function shareOnWhatsApp() {
-    if (!currentCard.firstName) {
-        alert('Please generate your business card first!');
-        return;
-    }
-
-    // Show loading state (optional)
-    const btn = event.target.closest('button');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<span class="btn-icon">⏳</span> Generating...';
-    btn.disabled = true;
-
-    // Create styled QR image
-    createStyledQRImage(async (blob, dataURL) => {
-        // Restore button
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        // Try to share using Web Share API (mobile)
-        if (isMobile && navigator.share) {
-            try {
-                const file = new File([blob], `Socials_${currentCard.firstName}.png`, { 
-                    type: 'image/png',
-                    lastModified: Date.now()
-                });
-                
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        files: [file],
-                        title: `Socials of ${currentCard.firstName}`,
-                        text: `Contact card for ${currentCard.firstName} ${currentCard.lastName}`
-                    });
-                    return;
-                }
-            } catch (err) {
-                console.error('Share failed:', err);
-            }
-        }
-        
-        // Fallback: Download image and open WhatsApp
-        const link = document.createElement('a');
-        link.href = dataURL;
-        link.download = `Socials_${currentCard.firstName}_${Date.now()}.png`;
-        link.click();
-        
-        // Create WhatsApp message
-        let message = `✨ *Digital Business Card*\n\n`;
-        message += `👤 *${currentCard.firstName} ${currentCard.lastName}*\n`;
-        if (currentCard.jobTitle) message += `💼 ${currentCard.jobTitle}\n`;
-        if (currentCard.company) message += `🏢 ${currentCard.company}\n`;
-        if (currentCard.instagram) message += `Insta: ${currentCard.instagram}\n`;
-        message += `\n📱 Contact saved in QR code - please check your downloads for the image!\n`;
-        message += `\n🔗 Digital Card: ${window.location.href}`;
-        
-        const encodedMessage = encodeURIComponent(message);
-        
-        // Open WhatsApp
-        setTimeout(() => {
-            if (isMobile) {
-                window.location.href = `whatsapp://send?text=${encodedMessage}`;
-            } else {
-                window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
-            }
-        }, 500);
-    });
+// Share functions
+async function shareURLQR() {
+if (!urlQRBlob) return;
+await shareToWhatsApp(urlQRBlob, 'URL', currentURLData.businessName);
 }
 
-// Copy details to clipboard
-function copyToClipboard() {
-    if (!currentCard.firstName) {
-        alert('Please generate your business card first!');
-        return;
-    }
-
-    let details = `${currentCard.firstName} ${currentCard.lastName}\n`;
-    if (currentCard.jobTitle) details += `${currentCard.jobTitle}\n`;
-    if (currentCard.company) details += `${currentCard.company}\n`;
-    details += `\nContact Information:\n`;
-    details += `Email: ${currentCard.email}\n`;
-    details += `Phone: ${currentCard.phone}\n`;
-    if (currentCard.website || currentCard.linkedin || currentCard.instagram) {
-        details += `\nSocial Media:\n`;
-        if (currentCard.website) details += `Website: ${currentCard.website}\n`;
-        if (currentCard.linkedin) details += `LinkedIn: ${currentCard.linkedin}\n`;
-        if (currentCard.instagram) {
-            let instagram = currentCard.instagram.startsWith('@') ? currentCard.instagram : `@${currentCard.instagram}`;
-            details += `Instagram: ${instagram}\n`;
-        }
-    }
-    if (currentCard.address) details += `\nAddress: ${currentCard.address}\n`;
-
-    navigator.clipboard.writeText(details)
-        .then(() => {
-            // Show success feedback
-            const btn = event.target.closest('button');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<span class="btn-icon">✅</span> Copied!';
-            btn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.style.background = '';
-            }, 2000);
-        })
-        .catch(err => console.error('Could not copy text: ', err));
+async function shareCardQR() {
+if (!cardQRBlob) return;
+await shareToWhatsApp(cardQRBlob, 'Card', currentCardData.firstName);
 }
 
-// Load from Local Storage
-function loadFromLocalStorage() {
-    const savedCard = localStorage.getItem('myCard');
-    if (savedCard) {
-        currentCard = JSON.parse(savedCard);
-        // Pre-fill form
-        document.getElementById('firstName').value = currentCard.firstName || '';
-        document.getElementById('lastName').value = currentCard.lastName || '';
-        document.getElementById('jobTitle').value = currentCard.jobTitle || '';
-        document.getElementById('company').value = currentCard.company || '';
-        document.getElementById('email').value = currentCard.email || '';
-        document.getElementById('phone').value = currentCard.phone || '';
-        document.getElementById('website').value = currentCard.website || '';
-        document.getElementById('linkedin').value = currentCard.linkedin || '';
-        document.getElementById('instagram').value = currentCard.instagram || '';
-        document.getElementById('address').value = currentCard.address || '';
-        
-        // Display the card
-        displayCard(currentCard);
-        generateQRCode();
-        document.getElementById('card-display').classList.remove('hidden');
-        document.getElementById('empty-state').classList.add('hidden');
-    }
+// Share to WhatsApp
+async function shareToWhatsApp(blob, type, name) {
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+if (isMobile && navigator.share) {
+try {
+const file = new File([blob], `QR_${type}_${name}.png`, { type: 'image/png' });
+await navigator.share({
+files: [file],
+title: `QR Code - ${name}`,
+text: type === 'URL' ? 'Check out our QR code!' : `Contact card for ${name}`
+});
+return;
+} catch (err) {
+console.error('Share failed:', err);
+}
+}
+// Fallback: Download and open WhatsApp
+downloadQR(blob, `QR_${type}_${name}`);
+setTimeout(() => {
+const message = type === 'URL'
+? `Check out our QR code for ${name}!`
+: `Here's my digital business card!`;
+const encoded = encodeURIComponent(message);
+if (isMobile) {
+window.location.href = `whatsapp://send?text=${encoded}`;
+} else {
+window.open(`https://web.whatsapp.com/send?text=${encoded}`, '_blank');
+}
+}, 500);
 }
 
-// Add roundRect polyfill for older browsers
-if (!CanvasRenderingContext2D.prototype.roundRect) {
-    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-        if (w < 2 * r) r = w / 2;
-        if (h < 2 * r) r = h / 2;
-        this.beginPath();
-        this.moveTo(x + r, y);
-        this.arcTo(x + w, y, x + w, y + h, r);
-        this.arcTo(x + w, y + h, x, y + h, r);
-        this.arcTo(x, y + h, x, y, r);
-        this.arcTo(x, y, x + w, y, r);
-        this.closePath();
-        return this;
-    };
+// Download functions
+function downloadURLQR() {
+if (urlQRBlob) {
+downloadQR(urlQRBlob, `QR_URL_${currentURLData.businessName}`);
 }
+}
+
+function downloadCardQR() {
+if (cardQRBlob) {
+downloadQR(cardQRBlob, `QR_Card_${currentCardData.firstName}`);
+}
+}
+
+function downloadQR(blob, filename) {
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = `${filename}_${Date.now()}.png`;
+a.click();
+URL.revokeObjectURL(url);
+showMessage('QR Code downloaded!', 'success');
+}
+
+// Load saved data
+function loadSavedData() {
+const urlData = localStorage.getItem('urlData');
+const cardData = localStorage.getItem('cardData');
+if (urlData) {
+const data = JSON.parse(urlData);
+document.getElementById('urlType').value = data.type || 'website';
+document.getElementById('businessName').value = data.businessName || '';
+document.getElementById('urlInput').value = data.url || '';
+document.getElementById('urlDescription').value = data.description || '';
+}
+if (cardData) {
+const data = JSON.parse(cardData);
+Object.keys(data).forEach(key => {
+const element = document.getElementById(key);
+if (element) element.value = data[key] || '';
+});
+}
+}
+
+// Show message
+function showMessage(text, type) {
+const message = document.getElementById('message');
+message.textContent = text;
+message.className = `message ${type}`;
+message.style.display = 'block';
+setTimeout(() => {
+message.style.display = 'none';
+}, 3000);
+}
+
+// Helper function for rounded rectangles
+function roundRect(ctx, x, y, width, height, radius) {
+ctx.beginPath();
+ctx.moveTo(x + radius, y);
+ctx.lineTo(x + width - radius, y);
+ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+ctx.lineTo(x + width, y + height - radius);
+ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+ctx.lineTo(x + radius, y + height);
+ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+ctx.lineTo(x, y + radius);
+ctx.quadraticCurveTo(x, y, x + radius, y);
+ctx.closePath();
+}
+
+// Export functions
+window.switchTab = switchTab;
+window.updateURLForm = updateURLForm;
+window.shareURLQR = shareURLQR;
+window.shareCardQR = shareCardQR;
+window.downloadURLQR = downloadURLQR;
+window.downloadCardQR = downloadCardQR;
